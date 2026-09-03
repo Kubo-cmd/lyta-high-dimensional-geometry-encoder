@@ -1,22 +1,46 @@
 name: CI
+
 on:
   push:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install deps (pinned to verified-passing versions)
+          cache: pip
+      - name: Install verification tools
         run: |
-          pip install numpy==2.0.2 scipy==1.14.1 cryptography==49.0.0 argon2-cffi keyring pytest pytest-asyncio
+          python -m pip install --upgrade pip
+          python -m pip install ".[test]" build
       - name: Run tests
-        run: python -m pytest tests/ -q
+        run: python -m pytest -q
+      - name: Build distributions
+        run: python -m build
+      - name: Verify installed wheel and command outside source tree
+        shell: bash
+        run: |
+          python -m venv /tmp/geometry-wheel-smoke
+          /tmp/geometry-wheel-smoke/bin/python -m pip install dist/*.whl
+          cd /tmp
+          /tmp/geometry-wheel-smoke/bin/python -c "from lyta_geometry_encoder import regular_simplex; assert regular_simplex(4, 3).shape == (4, 3)"
+          /tmp/geometry-wheel-smoke/bin/lyta-geometry-encoder --codes 8 --dim 7 --noise 0.02 --trials 20 --seed 42
