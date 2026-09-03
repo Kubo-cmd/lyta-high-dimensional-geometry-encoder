@@ -1,24 +1,24 @@
-# Security Notes for alien-tech-scrambler
+# Security Policy
 
-This is a privacy and obfuscation toolkit. It combines established methods for data scrambling.
+## Supported versions
 
-## Cryptographic Boundary
-- Primary security: AES-256-GCM (authenticated encryption).
-- Chaotic keystream, lattice noise, FFT, and differential privacy are additional obfuscation and perturbation layers.
-- Warning: 1D chaotic maps alone are not cryptographically secure against phase-space attacks. They are layered on top of AES here.
+Security fixes are applied to the latest commit on the `main` branch. No stable
+release series has been published.
 
-## Audio Scrambling
-- FFT phase roll provides reversible frequency-domain obfuscation.
-- Note: Modern ML models (e.g. neural vocoders) may partially reconstruct formants. For stronger protection, combine with other methods.
+## Reporting a vulnerability
 
-## Key Handling (Current)
-- Uses simple hash derivation from secret or SCRAMBLER_KEY env.
-- Recommendation: In real use, integrate Argon2id for key derivation and platform key stores (macOS Keychain, etc.).
+Do not open a public issue for a suspected vulnerability. Use GitHub's private
+security-advisory flow for this repository. Include the affected commit, a
+minimal reproduction, expected and observed behavior, impact, and any suggested
+mitigation.
 
-## Usage Guidance
-- Suitable for prototypes and internal tools.
-- Run the 1M+ simulation suite and tests before relying on any component.
-- Not a substitute for proper encryption libraries or audited systems.
+You should receive an acknowledgement within seven days. No response-time or
+fix-time guarantee is implied.
 
-## Reporting Issues
-Use standard channels for the repository.
+## Scope and non-claims
+
+This library performs numerical geometry operations. It does not encrypt data,
+isolate credentials, enforce authorization, or provide differential privacy.
+Seeded projections are reproducible experiments, not secret transformations.
+Numerical precision, denial-of-service inputs that bypass documented work
+bounds, package integrity, and incorrect security claims are in scope.
